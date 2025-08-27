@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# Ultralytics/YOLO artifacts
+runs/
+outputs/
+
+# Local data & weights
+input_videos/
+datasets/
+*.pt
+*.pth
+*.onnx
+*.bin
+*.engine
+
+# Big media
+*.mp4
+*.mov
+*.avi
+*.mkv
