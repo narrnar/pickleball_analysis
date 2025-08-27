@@ -3,7 +3,7 @@ from ultralytics import YOLO
 
 model = YOLO('yolov8x')
 
-result = model.track('INPUTVIDEO.mp4', conf = 0.2, save = True)
+result = model.track('input_videos/image.png', save = True)
 
 # Output
 # print(result)
