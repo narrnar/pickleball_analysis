@@ -6,11 +6,11 @@ __pycache__/
 # macOS
 .DS_Store
 
-# Ultralytics/YOLO artifacts
+# YOLO / outputs
 runs/
 outputs/
 
-# Local data & weights
+# Local data & weights (keep local, don't push)
 input_videos/
 datasets/
 *.pt
