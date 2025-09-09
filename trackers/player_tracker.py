@@ -4,7 +4,16 @@ class PlayerTracker:
     def __init__(self, model_path):
         self.model = YOLO(model_path)
 
-    def detect_frames(self, frame):
+    def detect_frames(self, frames):
+        player_detections = []
+
+        for frame in frames:
+            player_dict = self.detect_frame(frame)
+            player_detections.append(player_dict)
+
+        return player_detections
+
+    def detect_frame(self, frame):
         results = self.model.track(frame, persist = True)
         id_name_dict = results.names
 
