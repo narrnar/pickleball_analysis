@@ -9,6 +9,7 @@ __pycache__/
 # YOLO / outputs
 runs/
 outputs/
+tracker_stubs/
 
 # Local data & weights (keep local, don't push)
 input_videos/
@@ -24,3 +25,6 @@ datasets/
 *.mov
 *.avi
 *.mkv
+*.jpg
+*.pkl
+*.png
