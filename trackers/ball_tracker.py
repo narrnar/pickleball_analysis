@@ -16,8 +16,8 @@ class BallTracker:
             return ball_detections
 
         for frame in frames:
-            player_dict = self.detect_frame(frame)
-            ball_detections.append(player_dict)
+            ball_dict = self.detect_frame(frame)
+            ball_detections.append(ball_dict)
 
         # Save detections to stub file if path is provided
         if stub_path is not None:
@@ -27,13 +27,11 @@ class BallTracker:
         return ball_detections
 
     def detect_frame(self, frame):
-        results = self.model.predict(frame, conf = 0.15, persist = True)[0]
+        results = self.model.predict(frame, conf = 0.15)[0]
 
         ball_dict = {}
         for box in results.boxes:
-            track_id = int(box.id.tolist()[0])
             result = box.xyxy.tolist()[0]
-            
             ball_dict[1] = result
 
         return ball_dict
@@ -41,7 +39,7 @@ class BallTracker:
     def draw_bboxes(self, video_frames, player_detections):
         output_video_frames = []
         for frame, ball_dict in zip(video_frames, player_detections):
-            # Draw player bounding boxes
+            # Draw ball bounding boxes
             for track_id, bbox in ball_dict.items():
                 x1, y1, x2, y2 = bbox
                 cv2.putText(frame, f"Ball ID: {track_id}", (int(bbox[0]), int(bbox[1] - 10)), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
