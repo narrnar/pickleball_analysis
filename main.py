@@ -11,7 +11,10 @@ def main():
 
     # Detect Players and Ball
     player_tracker = PlayerTracker(model_path='yolov8x.pt')
-    player_detections = player_tracker.detect_frames(video_frames)
+    player_detections = player_tracker.detect_frames(video_frames,
+                                                     read_from_stub=True,
+                                                     stub_path='tracker_stubs/player_detections.pkl'
+                                                     )
 
     # Court Line Detector Model
 
