@@ -1,7 +1,7 @@
 # Import necessary modules
 from utils import (read_video, 
                    save_video)
-from trackers import PlayerTracker
+from trackers import PlayerTracker, BallTracker
 
 def main():
     # Read Video
@@ -11,9 +11,14 @@ def main():
 
     # Detect Players and Ball
     player_tracker = PlayerTracker(model_path='yolov8x.pt')
+    ball_tracker = BallTracker(model_path='models/yolov8n_last.pt')
     player_detections = player_tracker.detect_frames(video_frames,
-                                                     read_from_stub=True,
+                                                     read_from_stub=True, # Run False for first time or to re-generate stubs
                                                      stub_path='tracker_stubs/player_detections.pkl'
+                                                     )
+    ball_detections = ball_tracker.detect_frames(video_frames,
+                                                     read_from_stub=True, # Run False for first time or to re-generate stubs
+                                                     stub_path='tracker_stubs/ball_detections.pkl'
                                                      )
 
     # Court Line Detector Model
@@ -31,6 +36,8 @@ def main():
 
     # -- Draw Player Bounding Boxes
     output_video_frames = player_tracker.draw_bboxes(video_frames, player_detections)
+    output_video_frames = ball_tracker.draw_bboxes(video_frames, ball_detections)
+
 
     # -- Draw Court Keypoints
 
