@@ -38,7 +38,7 @@ class CourtLineDetector:
             x = int(keypoints[i])
             y = int(keypoints[i + 1])
 
-            cv2.putImage(image, str(i//2), (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+            cv2.putText(image, str(i//2), (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
             cv2.circle(image, (x, y), 5, (0, 0, 255), -1)
         return image
     
