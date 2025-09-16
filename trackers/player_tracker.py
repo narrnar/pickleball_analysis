@@ -1,10 +1,46 @@
 from ultralytics import YOLO
 import cv2
 import pickle
+import sys
+sys.path.append('../')
+from utils import measure_distance, get_center_of_bbox
 
 class PlayerTracker:
     def __init__(self, model_path):
         self.model = YOLO(model_path)
+
+    def choose_and_filter_players(self, court_keypoints, player_detections):
+        player_deterctions_first_name = player_detections[0]
+        chosen_player = self.choose_players(court_keypoints, player_deterctions_first_name)
+        filtered_player_detections = []
+        for player_dict in player_detections:
+            filtered_player_dict = {track_id: bbox for track_id, bbox in player_dict.items() if track_id in chosen_player}
+            filtered_player_detections.append(filtered_player_dict)
+        return filtered_player_detections
+
+
+    def choose_players(self, court_keypoints, player_dict):
+        # Logic to choose players based on court keypoints and first frame detections
+        distances = []
+        for track_id, bbox in player_dict.items():
+            player_cetner = get_center_of_bbox(bbox)
+
+            # Calculate distance from player to a reference court keypoint (e.g., center of the court)
+            min_distance = float('inf')
+            for i in range(0, len(court_keypoints), 2):
+                court_keypoint = (court_keypoints[i], court_keypoints[i+1])
+                distance = measure_distance(player_cetner, court_keypoint)
+                if distance < min_distance:
+                    min_distance = distance
+            distances.append((track_id, min_distance))
+
+        # Sort players by distance in ascending order
+        distances.sort(key=lambda x: x[1])
+        # Choose the first four players/tracks
+        chosen_players = [distances[0][0], distances[1][0], distances[2][0], distances[3][0]]
+        return chosen_players
+            
+
 
     def detect_frames(self, frames, read_from_stub = False, stub_path = None):
         player_detections = []
@@ -26,6 +62,7 @@ class PlayerTracker:
 
         return player_detections
 
+
     def detect_frame(self, frame):
         results = self.model.track(frame, persist = True)[0]
         id_name_dict = results.names
@@ -41,6 +78,7 @@ class PlayerTracker:
 
         return player_dict
     
+
     def draw_bboxes(self, video_frames, player_detections):
         output_video_frames = []
         for frame, player_dict in zip(video_frames, player_detections):
