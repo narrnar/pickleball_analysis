@@ -23,27 +23,49 @@ class MiniCourt:
 
 
     def set_court_drawing_key_points(self):
-        drawing_key_points = [0]*24
+        drawing_key_points = [0] * 24
 
-        # Points around the court for the pickleball court (12 points)
-        # Point 0 - top left of screen
-        drawing_key_points[0], drawing_key_points[1] = int(self.court_start_x), int(self.court_start_y)
-        # Point 1 - top right of screen
-        drawing_key_points[2], drawing_key_points[3] = int(self.court_end_x), int(self.court_start_y)
-        # Point 2 - bottom left of screen
-        drawing_key_points[4] = int(self.court_start_x)
-        drawing_key_points[5] = self.court_start_y + self.convert_meters_to_pixels(constants.HALF_COURT_LENGTH*2)
-        # Point 3 - bottom right of screen
-        drawing_key_points[6] = drawing_key_points[0] + self.court_drawing_width
-        drawing_key_points[7] = drawing_key_points[5]
-        # Point 4
-        # Point 5
-        # Point 6
-        # Point 7
-        # Point 8
-        # Point 9
-        # Point 10
-        # Point 11
+        # --- corners (pickleball order) ---
+        x_left  = int(self.court_start_x)
+        x_right = int(self.court_end_x)
+        y_top   = int(self.court_start_y)
+        y_bot   = int(self.court_start_y + self.convert_meters_to_pixels(constants.HALF_COURT_LENGTH * 2))
+
+        # 0: bottom-left
+        drawing_key_points[0], drawing_key_points[1] = x_left,  y_bot
+        # 1: top-left
+        drawing_key_points[2], drawing_key_points[3] = x_left,  y_top
+        # 2: top-right
+        drawing_key_points[4], drawing_key_points[5] = x_right, y_top
+        # 3: bottom-right
+        drawing_key_points[6], drawing_key_points[7] = x_right, y_bot
+
+        # --- helpers ---
+        x_mid = (x_left + x_right) // 2
+        y_net = (y_top + y_bot) // 2
+        nvz_px = int(self.convert_meters_to_pixels(constants.KITCHEN_LENGTH))  # NVZ/kitchen depth in px
+        y_close = y_net + nvz_px   # toward bottom
+        y_far   = y_net - nvz_px   # toward top
+
+        # 4: close middle left
+        drawing_key_points[8],  drawing_key_points[9]  = x_left,  y_close
+        # 5: close middle right
+        drawing_key_points[10], drawing_key_points[11] = x_right, y_close
+        # 6: far middle right
+        drawing_key_points[12], drawing_key_points[13] = x_right, y_far
+        # 7: far middle left
+        drawing_key_points[14], drawing_key_points[15] = x_left,  y_far
+        # 8: close middle middle
+        drawing_key_points[16], drawing_key_points[17] = x_mid,   y_close
+        # 9: far middle middle
+        drawing_key_points[18], drawing_key_points[19] = x_mid,   y_far
+        # 10: top middle
+        drawing_key_points[20], drawing_key_points[21] = x_mid,   y_top
+        # 11: bottom middle
+        drawing_key_points[22], drawing_key_points[23] = x_mid,   y_bot
+
+        self.drawing_key_points = drawing_key_points
+
 
 
     def set_mini_court_position(self):
