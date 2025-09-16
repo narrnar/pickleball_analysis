@@ -1,0 +1,14 @@
+names:
+- Pickleball
+- person
+nc: 2
+path: /Users/darensivam/Desktop/Projects/pickleball/training/Pickleball-1/Pickleball-1
+roboflow:
+  license: CC BY 4.0
+  project: pickleball-uninu
+  url: https://universe.roboflow.com/pickleball-1uztf/pickleball-uninu/dataset/1
+  version: 1
+  workspace: pickleball-1uztf
+test: test/images
+train: train/images
+val: valid/images

@@ -10,6 +10,7 @@ __pycache__/
 runs/
 outputs/
 tracker_stubs/
+output_videos/
 
 # Local data & weights (keep local, don't push)
 input_videos/
@@ -28,3 +29,16 @@ datasets/
 *.jpg
 *.pkl
 *.png
+
+# Text files
+*.txt
+*.log
+*.csv
+*.json
+*.xml
+*.yaml
+*.yml
+*.cache
+
+# Jupyter Notebooks
+*.ipynb

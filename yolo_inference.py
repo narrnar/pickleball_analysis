@@ -4,12 +4,12 @@
 
 from ultralytics import YOLO
 
-model = YOLO('models/yolov8n_last.pt')
+model = YOLO('yolov8x')
 
-result = model.predict('input_videos/input_video.mp4', conf = 0.2, save = True)
+result = model.track('input_videos/input_video.mp4', conf = 0.2, save = True)
 
 # Output
-print(result)
-print("boxes:")
-for box in result[0].boxes:
-    print(box)
+# print(result)
+# print("boxes:")
+# for box in result[0].boxes:
+#     print(box)
