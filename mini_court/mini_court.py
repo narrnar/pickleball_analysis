@@ -3,8 +3,8 @@ import sys
 import numpy as np
 sys.path.append('../')
 import constants
-from utils import(convert_meters_to_pixel_distance, 
-                  convert_pixel_distance_to_meters)
+from utils import(convert_pixel_distance_to_meters, 
+                  convert_meters_to_pixel_distance)
 
 class MiniCourt:
     def __init__(self, frame):
@@ -100,6 +100,14 @@ class MiniCourt:
         self.start_x = self.end_x - self.drawing_rectangle_width
         self.start_y = self.end_y - self.drawing_rectangle_height
 
+    def draw_court(self, frame):
+        for i in range(0, len(self.drawing_key_points), 2):
+            x = int(self.drawing_key_points[i])
+            y = int(self.drawing_key_points[i + 1])
+            cv2.circle(frame, (x, y), 5, (255, 0, 0), -1)
+
+        return frame
+
     def draw_background_rectangle(self, frame):
         shapes = np.zeros_like(frame, np.uint8)
         # Draw filled rectangle with transparent grey
@@ -108,14 +116,14 @@ class MiniCourt:
         alpha = 0.5
         mask = shapes.astype(bool)
         out[mask] = cv2.addWeighted(frame, alpha, shapes, 1 - alpha, 0)[mask]
-        out = cv2.cvtColor(out, cv2.COLOR_BGR2RGB)
+
         return out
     
     def draw_mini_court(self, frames):
         output_frames = []
         for frame in frames:
             frame = self.draw_background_rectangle(frame)
-            
+            frame = self.draw_court(frame)
             output_frames.append(frame)
 
         return output_frames
