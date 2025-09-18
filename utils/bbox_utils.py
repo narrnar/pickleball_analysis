@@ -64,3 +64,29 @@ def get_closest_key_point_index(point, keypoints, keypoint_indices):
             key_point_ind = keypoint_index
         
     return key_point_ind
+
+
+def get_height_of_bbox(bbox):
+    """
+    Calculate the height of a bounding box.
+
+    Parameters:
+    bbox (list or tuple): A list or tuple containing the coordinates of the bounding box in the format [x1, y1, x2, y2].
+
+    Returns:
+    int: The height of the bounding box.
+    """
+    return bbox[3] - bbox[1]
+
+def measure_xy_distance(p1, p2):
+    """
+    Calculate the horizontal and vertical distances between two points.
+
+    Parameters:
+    p1 (tuple): A tuple containing the (x, y) coordinates of the first point.
+    p2 (tuple): A tuple containing the (x, y) coordinates of the second point.
+
+    Returns:
+    tuple: A tuple containing the horizontal (delta_x) and vertical (delta_y) distances between the two points.
+    """
+    return abs(p1[0] - p2[0]), abs(p1[1] - p2[1])
