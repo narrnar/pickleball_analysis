@@ -37,6 +37,8 @@ def main():
     mini_court = MiniCourt(video_frames[0])
 
     # Detect Ball Shots
+    ball_shot_frames = ball_tracker.get_ball_shot_frames(ball_detections)
+    print(f"Ball Shots detected at frames: {ball_shot_frames}")
 
     # Convert positions to mini court positions
 

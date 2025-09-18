@@ -4,7 +4,11 @@ import numpy as np
 sys.path.append('../')
 import constants
 from utils import(convert_pixel_distance_to_meters, 
-                  convert_meters_to_pixel_distance)
+                  convert_meters_to_pixel_distance,
+                  get_foot_position,
+                  get_closest_key_point_index,
+                  get_height_of_bbox,
+                  measure_xy_distance)
 
 class MiniCourt:
     def __init__(self, frame):
@@ -101,10 +105,11 @@ class MiniCourt:
         self.start_y = self.end_y - self.drawing_rectangle_height
 
     def draw_court(self, frame):
+        # Draw key points
         for i in range(0, len(self.drawing_key_points), 2):
             x = int(self.drawing_key_points[i])
             y = int(self.drawing_key_points[i + 1])
-            cv2.circle(frame, (x, y), 5, (255, 0, 0), -1)
+            cv2.circle(frame, (x, y), 5, (0, 0, 255), -1)
 
         # Draw court lines
         for line in self.lines:
@@ -113,9 +118,11 @@ class MiniCourt:
             cv2.line(frame, start_point, end_point, (0, 0, 0), 2)
 
         # Draw net line
-        net_start_point = (self.drawing_key_points[0], int((self.drawing_key_points[1] + self.drawing_key_points[5]) / 2))
-        net_end_point = (self.drawing_key_points[2], int((self.drawing_key_points[3] + self.drawing_key_points[5]) / 2))
-        cv2.line(frame, net_start_point, net_end_point, (255, 0, 0), 2)
+        x_left  = int(self.drawing_key_points[0])   # pt 0 x
+        x_right = int(self.drawing_key_points[6])   # pt 3 x
+        y_net   = int((self.drawing_key_points[21] + self.drawing_key_points[23]) // 2)  # mean of pts 10y & 11y
+
+        cv2.line(frame, (x_left, y_net), (x_right, y_net), (255, 0, 0), 2)
 
         return frame
 
@@ -148,3 +155,56 @@ class MiniCourt:
     
     def get_court_drawing_keypoints(self):
         return self.drawing_key_points
+    
+    def get_mini_court_coordinates(self, 
+                                   object_position, 
+                                   closest_key_point, 
+                                   closes_key_point_index, 
+                                   player_height_in_pixels, 
+                                   player_height_in_meters):
+        distance_from_x_keypoint_pixels, distance_from_y_keypoint_pixels = measure_xy_distance(object_position, closest_key_point)
+        
+        # Convert pixel distances to meters
+        distance_from_x_keypoint_meters = convert_pixel_distance_to_meters(distance_from_x_keypoint_pixels,
+                                                                           player_height_in_meters,
+                                                                           player_height_in_pixels)
+        distance_from_y_keypoint_meters = convert_pixel_distance_to_meters(distance_from_y_keypoint_pixels,
+                                                                           player_height_in_meters,
+                                                                           player_height_in_pixels)
+        
+        # Convert to mini court pixel coordinates
+        mini_court_x_distance_pixels = self.convert_meters_to_pixels(distance_from_x_keypoint_meters)
+        mini_court_y_distance_pixels = self.convert_meters_to_pixels(distance_from_y_keypoint_meters)
+        closest_mini_court_keypoint = (self.drawing_key_points[closes_key_point_index*2],
+                                       self.drawing_key_points[closes_key_point_index*2 + 1])
+        mini_court_player_position = (closest_mini_court_keypoint[0] + mini_court_x_distance_pixels,
+                                      closest_mini_court_keypoint[1] + mini_court_y_distance_pixels)
+
+
+    def convert_bounding_boxes_to_mini_court_coordinates(self, player_boxes, ball_boxes, original_court_key_points):
+        player_heights = {
+            1: constants.PLAYER_1_HEIGHT_METERS,
+            2: constants.PLAYER_2_HEIGHT_METERS,
+            3: constants.PLAYER_3_HEIGHT_METERS,
+            4: constants.PLAYER_4_HEIGHT_METERS
+        }
+
+        output_player_boxes = []
+        output_ball_boxes = []
+
+        for frame_num, player_bbox in enumerate(player_boxes):
+            for player_id, bbox in player_bbox.items():
+                foot_position = get_foot_position(bbox)
+
+                # Get the closest key point on the court to the foot position - using points(0-close, 1-far, 8-close_middle, 9-far_middle)
+                closest_key_point_index = get_closest_key_point_index(foot_position, original_court_key_points, [0, 1, 8, 9])
+                closest_key_point = (original_court_key_points[closest_key_point_index*2], 
+                                     original_court_key_points[closest_key_point_index*2 + 1])
+
+                # Get player height in pixels
+                frame_index_min = max(0, frame_num - 20)
+                frame_index_max = min(len(player_boxes), frame_num + 50)
+                bbox_heights_in_pixels = [get_height_of_bbox(player_bbox[i]) for i in range(frame_index_min, frame_index_max)]
+                max_player_height_in_pixels = max(bbox_heights_in_pixels)
+
+                
