@@ -26,6 +26,7 @@ class BallTracker:
         # Convert the list into pandas DataFrame for easier manipulation
         df_ball_positions = pd.DataFrame(ball_positions, columns=['x1', 'y1', 'x2', 'y2'])
 
+        df_ball_positions['ball_hit'] = 0
         df_ball_positions['mid_y'] = (df_ball_positions['y1'] + df_ball_positions['y2']) / 2
         df_ball_positions['mid_y_rolling_mean'] = df_ball_positions['mid_y'].rolling(window = 5, min_periods = 1, center = False).mean()
         df_ball_positions['delta_y'] = df_ball_positions['mid_y_rolling_mean'].diff()
