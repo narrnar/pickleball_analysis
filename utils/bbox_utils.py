@@ -90,3 +90,19 @@ def measure_xy_distance(p1, p2):
     tuple: A tuple containing the horizontal (delta_x) and vertical (delta_y) distances between the two points.
     """
     return abs(p1[0] - p2[0]), abs(p1[1] - p2[1])
+
+
+def get_center_of_bbox(bbox):
+    """
+    Calculate the center point of a bounding box.
+
+    Parameters:
+    bbox (list or tuple): A list or tuple containing the coordinates of the bounding box in the format [x1, y1, x2, y2].
+
+    Returns:
+    tuple: A tuple containing the (x, y) coordinates of the center point of the bounding box.
+    """
+    x1, y1, x2, y2 = bbox
+    center_x = int((x1 + x2) / 2)
+    center_y = int((y1 + y2) / 2)
+    return (center_x, center_y)
