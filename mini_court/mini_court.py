@@ -197,60 +197,60 @@ class MiniCourt:
         for frame_num, player_bbox in enumerate(player_boxes):
             ball_bbox = ball_boxes[frame_num][1]
             ball_position = get_center_of_bbox(ball_bbox)
-            closest_player_id_to_ball = min(player_bbox.keys(), key=lambda x: measure_distance(ball_position, get_foot_position(player_bbox[x])))
+
+            # use only ids 1..4 when picking closest
+            valid_ids = [pid for pid in player_bbox.keys() if int(pid) in (1, 2, 3, 4)]
+            if not valid_ids:
+                output_player_boxes.append({})
+                continue
+            closest_player_id_to_ball = min(
+                valid_ids,
+                key=lambda x: measure_distance(ball_position, get_foot_position(player_bbox[x]))
+            )
 
             output_player_bboxes_dict = {}
             for player_id, bbox in player_bbox.items():
+                pid = int(player_id)
+                if pid not in (1, 2, 3, 4):
+                    continue
+
                 foot_position = get_foot_position(bbox)
 
-                # Get the closest key point on the court to the foot position - using points(0-close, 1-far, 8-close_middle, 9-far_middle)
-                closest_key_point_index = get_closest_key_point_index(foot_position, original_court_key_points, [0, 1, 8, 9])
-                closest_key_point = (original_court_key_points[closest_key_point_index*2], 
-                                     original_court_key_points[closest_key_point_index*2 + 1])
+                # closest key point (0-close, 1-far, 8-close_mid, 9-far_mid)
+                cidx = get_closest_key_point_index(foot_position, original_court_key_points, [0, 1, 8, 9])
+                cpt = (original_court_key_points[cidx * 2],
+                    original_court_key_points[cidx * 2 + 1])
 
-                # Get player height in pixels
+                # height window with guard
                 frame_index_min = max(0, frame_num - 20)
                 frame_index_max = min(len(player_boxes), frame_num + 50)
-                # bbox_heights_in_pixels = [get_height_of_bbox(player_boxes[i][player_id]) for i in range(frame_index_min, frame_index_max)]
-                # max_player_height_in_pixels = max(bbox_heights_in_pixels)
-
-                # --- Fix for missing player ID in some frames(above^) ---
                 heights = [
                     get_height_of_bbox(player_boxes[i][player_id])
                     for i in range(frame_index_min, frame_index_max)
                     if player_id in player_boxes[i]
                 ]
-                # fallback if the ID is missing across the window
-                if heights:
-                    max_player_height_in_pixels = max(heights)
-                else:
-                    max_player_height_in_pixels = get_height_of_bbox(bbox)  # use current frame’s box
-                # ------------------------------------------------
+                max_h_px = max(heights) if heights else get_height_of_bbox(bbox)
 
+                # player position on mini-court
+                mini_pos = self.get_mini_court_coordinates(
+                    foot_position, cpt, cidx, max_h_px, player_heights[pid]
+                )
+                output_player_bboxes_dict[pid] = mini_pos
 
-                mini_court_player_position = self.get_mini_court_coordinates(foot_position,
-                                                                            closest_key_point,
-                                                                            closest_key_point_index,
-                                                                            max_player_height_in_pixels,
-                                                                            player_heights.get(int(player_id), constants.PLAYER_1_HEIGHT_METERS))
-                
-                output_player_bboxes_dict[player_id] = mini_court_player_position
+                # ball position on mini-court (single block; compare with pid)
+                if int(closest_player_id_to_ball) == pid:
+                    cidx_b = get_closest_key_point_index(ball_position, original_court_key_points, [0, 1, 8, 9])
+                    cpt_b = (original_court_key_points[cidx_b * 2],
+                            original_court_key_points[cidx_b * 2 + 1])
+                    ball_pos_mini = self.get_mini_court_coordinates(
+                        ball_position, cpt_b, cidx_b, max_h_px, player_heights[pid]
+                    )
+                    output_ball_boxes.append({1: ball_pos_mini})
 
-                if closest_player_id_to_ball == player_id:
-                   # Get the closest key point on the court to the foot position - using points(0-close, 1-far, 8-close_middle, 9-far_middle)
-                    closest_key_point_index = get_closest_key_point_index(ball_position, original_court_key_points, [0, 1, 8, 9])
-                    closest_key_point = (original_court_key_points[closest_key_point_index*2], 
-                                        original_court_key_points[closest_key_point_index*2 + 1])
-                    mini_court_player_position = self.get_mini_court_coordinates(ball_position,
-                                                                            closest_key_point,
-                                                                            closest_key_point_index,
-                                                                            max_player_height_in_pixels,
-                                                                            player_heights.get(int(player_id), constants.PLAYER_1_HEIGHT_METERS))
-                    
-                    output_ball_boxes.append({1:mini_court_player_position})
             output_player_boxes.append(output_player_bboxes_dict)
 
         return output_player_boxes, output_ball_boxes
+
 
 
     def draw_points_on_mini_court(self, frames, positions, color = (0, 255, 0)):
