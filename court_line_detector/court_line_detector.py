@@ -11,7 +11,7 @@ class CourtLineDetector:
 
         self.transform = transforms.Compose([
             transforms.ToPILImage(),
-            transforms.Resize((224, 224)),
+            transforms.Resize((224, 224)), # Resized here so should be proper below
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
@@ -35,8 +35,8 @@ class CourtLineDetector:
     
     def draw_keypoints(self, image, keypoints):
         for i in range(0, len(keypoints), 2):
-            x = int(keypoints[i])
-            y = int(keypoints[i + 1])
+            x = int(keypoints[i]) + 150
+            y = int(keypoints[i + 1]) + 150
 
             cv2.putText(image, str(i//2), (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
             cv2.circle(image, (x, y), 5, (0, 0, 255), -1)
