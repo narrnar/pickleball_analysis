@@ -162,6 +162,9 @@ class MiniCourt:
     def get_court_drawing_keypoints(self):
         return self.drawing_key_points
     
+
+    # --- COMMENT OUT(WIP) ---
+    
     # def get_mini_court_coordinates(self, 
     #                                object_position, 
     #                                closest_key_point, 
@@ -252,4 +255,5 @@ class MiniCourt:
     #             cv2.circle(frame, (x, y), 5, color, -1)
 
     #     return frames
-
+    
+    # --- COMMENT OUT(END WIP) ---
