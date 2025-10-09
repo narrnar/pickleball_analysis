@@ -37,7 +37,9 @@ class PlayerTracker:
         # Sort players by distance in ascending order
         distances.sort(key=lambda x: x[1])
         # Choose the first four players/tracks
-        chosen_players = [distances[0][0], distances[1][0], distances[2][0], distances[3][0]]
+        # chosen_players = [distances[0][0], distances[1][0], distances[2][0], distances[3][0]]
+        # Choose the first two players/tracks
+        chosen_players = [distances[0][0], distances[1][0]]
         return chosen_players
             
 

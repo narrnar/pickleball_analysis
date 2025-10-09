@@ -193,9 +193,9 @@ class MiniCourt:
     def convert_bounding_boxes_to_mini_court_coordinates(self, player_boxes, ball_boxes, original_court_key_points):
         player_heights = {
             1: constants.PLAYER_1_HEIGHT_METERS,
-            2: constants.PLAYER_2_HEIGHT_METERS,
-            3: constants.PLAYER_3_HEIGHT_METERS,
-            4: constants.PLAYER_4_HEIGHT_METERS
+            2: constants.PLAYER_2_HEIGHT_METERS
+            # 3: constants.PLAYER_3_HEIGHT_METERS,
+            # 4: constants.PLAYER_4_HEIGHT_METERS
         }
 
         output_player_boxes = []

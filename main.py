@@ -15,7 +15,7 @@ from copy import deepcopy
 
 def main():
     # Read Video
-    input_video_path = 'input_videos/input_video.mp4'
+    input_video_path = 'input_videos/input_video2p.mp4' # rename - 2p/4p based on players
     video_frames = read_video(input_video_path)
 
 
@@ -23,12 +23,12 @@ def main():
     player_tracker = PlayerTracker(model_path='yolov8x.pt')
     ball_tracker = BallTracker(model_path='models/yolov8n_last.pt')
     player_detections = player_tracker.detect_frames(video_frames,
-                                                     read_from_stub=True, # Run False for first time or to re-generate stubs
-                                                     stub_path='tracker_stubs/player_detections.pkl'
+                                                     read_from_stub=False, # Run False for first time or to re-generate stubs
+                                                     stub_path='tracker_stubs/player_detections2p.pkl' # 2p/4p based on players
                                                      )
     ball_detections = ball_tracker.detect_frames(video_frames,
-                                                     read_from_stub=True, # Run False for first time or to re-generate stubs
-                                                     stub_path='tracker_stubs/ball_detections.pkl'
+                                                     read_from_stub=False, # Run False for first time or to re-generate stubs
+                                                     stub_path='tracker_stubs/ball_detections2p.pkl' # 2p/4p based on players
                                                      )
     ball_detections = ball_tracker.interpolate_ball_positions(ball_detections)
 
@@ -162,6 +162,7 @@ def main():
     # output_video_frames = mini_court.draw_points_on_mini_court(output_video_frames, ball_mini_court_detections, color = (0, 255, 255))
 
     # -- Draw Player Stats
+
     # --- COMMENT OUT (WIP) ---
     # output_video_frames = draw_player_stats(output_video_frames, player_stats_data_df)
     # --- COMMENT OUT (END WIP) ---
