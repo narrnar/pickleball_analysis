@@ -23,11 +23,11 @@ def main():
     player_tracker = PlayerTracker(model_path='yolov8x.pt')
     ball_tracker = BallTracker(model_path='models/yolov8n_last.pt')
     player_detections = player_tracker.detect_frames(video_frames,
-                                                     read_from_stub=False, # Run False for first time or to re-generate stubs
+                                                     read_from_stub=True, # Run False for first time or to re-generate stubs
                                                      stub_path='tracker_stubs/player_detections2p.pkl' # 2p/4p based on players
                                                      )
     ball_detections = ball_tracker.detect_frames(video_frames,
-                                                     read_from_stub=False, # Run False for first time or to re-generate stubs
+                                                     read_from_stub=True, # Run False for first time or to re-generate stubs
                                                      stub_path='tracker_stubs/ball_detections2p.pkl' # 2p/4p based on players
                                                      )
     ball_detections = ball_tracker.interpolate_ball_positions(ball_detections)

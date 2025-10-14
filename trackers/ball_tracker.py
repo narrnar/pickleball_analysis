@@ -30,7 +30,7 @@ class BallTracker:
         df_ball_positions['mid_y'] = (df_ball_positions['y1'] + df_ball_positions['y2']) / 2
         df_ball_positions['mid_y_rolling_mean'] = df_ball_positions['mid_y'].rolling(window = 5, min_periods = 1, center = False).mean()
         df_ball_positions['delta_y'] = df_ball_positions['mid_y_rolling_mean'].diff()
-        minimum_change_frames_for_hit = 18
+        minimum_change_frames_for_hit = 10 # Change sensitivity for hit detection
         for i in range(1, len(df_ball_positions) - int(minimum_change_frames_for_hit * 1.2)):
             negative_position_change = df_ball_positions['delta_y'].iloc[i] > 0 and df_ball_positions['delta_y'].iloc[i + 1] < 0 
             positive_position_change = df_ball_positions['delta_y'].iloc[i] < 0 and df_ball_positions['delta_y'].iloc[i + 1] > 0
@@ -74,14 +74,61 @@ class BallTracker:
         return ball_detections
 
     def detect_frame(self, frame):
-        results = self.model.predict(frame, conf = 0.15)[0]
+        # results = self.model.predict(frame, conf = 0.15)[0]
 
+        # ball_dict = {}
+        # for box in results.boxes:
+        #     result = box.xyxy.tolist()[0]            
+        #     ball_dict[1] = result
+
+        # return ball_dict
+
+        # --- Potential fix for tracking ball issues ---
+        # YOLOv8 tracking call — SPORTS BALL only (COCO class 32)
+        results = self.model.track(
+            frame,
+            persist=True,
+            classes=[32],    # ball only
+            conf=0.18,       # lower conf to keep recall
+            iou=0.30,        # allow more overlap; balls are tiny
+            imgsz=1280,      # bigger input helps tiny objects a lot
+            vid_stride=1,
+            tracker='bytetrack.yaml'
+        )
+
+        res = results[0]
+        boxes = res.boxes
         ball_dict = {}
-        for box in results.boxes:
-            result = box.xyxy.tolist()[0]            
-            ball_dict[1] = result
+
+        if boxes is not None and len(boxes) > 0:
+            xyxy = boxes.xyxy.cpu().numpy()
+            conf = boxes.conf.cpu().numpy()
+
+            # choose a stable candidate:
+            # 1) if we have a previous center, pick the closest to it
+            # 2) else pick the highest confidence
+            def center(b):
+                x1,y1,x2,y2 = b
+                return ((x1+x2)*0.5, (y1+y2)*0.5)
+
+            if getattr(self, "prev_center", None) is not None:
+                cx, cy = self.prev_center
+                dists = [ ( (center(xyxy[j])[0]-cx)**2 + (center(xyxy[j])[1]-cy)**2, j ) for j in range(xyxy.shape[0]) ]
+                j = min(dists)[1]
+            else:
+                j = int(conf.argmax())
+
+            chosen = xyxy[j].tolist()
+            ball_dict[1] = chosen
+            self.prev_center = center(chosen)
+        else:
+            # no detection this frame: keep last center (optional)
+            # you can also decay it or skip output for this frame
+            pass
 
         return ball_dict
+        # --- End of potential fix ---
+
     
     def draw_bboxes(self, video_frames, player_detections):
         output_video_frames = []

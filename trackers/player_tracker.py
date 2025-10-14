@@ -66,19 +66,59 @@ class PlayerTracker:
 
 
     def detect_frame(self, frame):
-        results = self.model.track(frame, persist = True)[0]
-        id_name_dict = results.names
+        # results = self.model.track(frame, persist = True)[0]
+        # id_name_dict = results.names
+
+        # player_dict = {}
+        # for box in results.boxes:
+        #     track_id = int(box.id.tolist()[0])
+        #     result = box.xyxy.tolist()[0]
+        #     object_cls_id = box.cls.tolist()[0]
+        #     object_cls_name = id_name_dict[object_cls_id]
+        #     if object_cls_name == "person":
+        #         player_dict[track_id] = result
+
+        # return player_dict
+
+        # --- Potential fix for tracking player issues ---
+        results = self.model.track(
+            frame,
+            persist=True,
+            classes=[0],     # person only
+            conf=0.45,       # 0.35–0.60 works; start here
+            iou=0.5,
+            imgsz=960,       # a bit larger improves stability without huge cost
+            vid_stride=1,    # don't skip frames
+            tracker='bytetrack.yaml'  # or 'botsort.yaml' if you prefer
+        )
+
+        res = results[0]
+        boxes = res.boxes
+        id_name = results[0].names  # keep if you need class names
 
         player_dict = {}
-        for box in results.boxes:
-            track_id = int(box.id.tolist()[0])
-            result = box.xyxy.tolist()[0]
-            object_cls_id = box.cls.tolist()[0]
-            object_cls_name = id_name_dict[object_cls_id]
-            if object_cls_name == "person":
-                player_dict[track_id] = result
+        if boxes is not None and len(boxes) > 0:
+            xyxy = boxes.xyxy.cpu().numpy()
+            ids  = (boxes.id.cpu().numpy() if boxes.id is not None else None)
+            cls  = (boxes.cls.cpu().numpy() if boxes.cls is not None else None)
+
+            # Keep only "person" (defensive check) and take the two tallest (closest)
+            keep = []
+            for j in range(xyxy.shape[0]):
+                if cls is None or int(cls[j]) == 0:
+                    x1,y1,x2,y2 = xyxy[j]
+                    h = y2 - y1
+                    keep.append((h, j))
+            keep.sort(reverse=True)
+            keep = keep[:2]
+
+            for _, j in keep:
+                tid = int(ids[j]) if ids is not None else j  # fallback to index if no ID
+                player_dict[tid] = xyxy[j].tolist()
 
         return player_dict
+        # --- End of potential fix ---
+
     
 
     def draw_bboxes(self, video_frames, player_detections):
