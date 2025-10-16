@@ -32,6 +32,7 @@ def main():
                                                      )
     ball_detections = ball_tracker.interpolate_ball_positions(ball_detections)
 
+
     # Court Line Detector Model
     court_model_path = "models/keypoint_model.pth"
     court_line_detector = CourtLineDetector(court_model_path)

@@ -35,8 +35,8 @@ class MiniCourt:
         drawing_key_points = [0] * 24
 
         # Adjustmets to fit court onto correct parts of the image
-        dx = 200
-        dy = 200
+        dx = 0
+        dy = 0
 
         # --- corners (pickleball order) ---
         x_left  = int(self.court_start_x) + dx
