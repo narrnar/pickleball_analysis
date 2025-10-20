@@ -49,4 +49,6 @@ Pickleball Detection Dataset: https://universe.roboflow.com/pickleball-1uztf/pic
 
 Pickleball Court Keypoints Dataset: https://universe.roboflow.com/pickleball-ball-detection/pickleball-court-keypoints-syncz/dataset/6
 
+Larger Pickleball Court Keypoints Dataset: https://universe.roboflow.com/aipickleballref/court-detection-bxo2j
+
 Google CoLab: https://colab.research.google.com/drive/1bvTmWvmuTbda3sDKvvKAvTwkBAwHtCaA?usp=sharing
