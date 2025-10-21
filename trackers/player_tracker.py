@@ -84,17 +84,17 @@ class PlayerTracker:
         results = self.model.track(
             frame,
             persist=True,
-            classes=[0],     # person only
-            conf=0.45,       # 0.35–0.60 works; start here
+            classes=[0], # person only
+            conf=0.45, 
             iou=0.5,
-            imgsz=960,       # a bit larger improves stability without huge cost
-            vid_stride=1,    # don't skip frames
-            tracker='bytetrack.yaml'  # or 'botsort.yaml' if you prefer
+            imgsz=960,     
+            vid_stride=1, # don't skip frames
+            tracker='bytetrack.yaml'
         )
 
         res = results[0]
         boxes = res.boxes
-        id_name = results[0].names  # keep if you need class names
+        id_name = results[0].names 
 
         player_dict = {}
         if boxes is not None and len(boxes) > 0:

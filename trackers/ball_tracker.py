@@ -1,4 +1,5 @@
 from ultralytics import YOLO
+from math import hypot
 import cv2
 import pickle
 import pandas as pd
@@ -6,6 +7,17 @@ import pandas as pd
 class BallTracker:
     def __init__(self, model_path):
         self.model = YOLO(model_path)
+        self.prev_center  = None
+        self.prev_box     = None
+        self.vel          = (0.0, 0.0)
+        self.misses       = 0
+        self.area_avg     = None
+        self.switch_votes = 0
+        names_lc = {i: n.lower() for i, n in self.model.names.items()}
+        self.ball_cls = next((i for i, n in names_lc.items()
+                            if n in ("pickleball", "sports ball", "ball")), None)
+        print("ball class idx =", self.ball_cls, "| classes =", self.model.names)
+
 
     def interpolate_ball_positions(self, ball_positions):
         ball_positions = [x.get(1, []) for x in ball_positions]
@@ -73,7 +85,7 @@ class BallTracker:
 
         return ball_detections
 
-    def detect_frame(self, frame):
+    def detect_frame(self, frame, person_boxes = None):
         # results = self.model.predict(frame, conf = 0.15)[0]
     
         # ball_dict = {}
@@ -83,55 +95,70 @@ class BallTracker:
 
         # return ball_dict
 
+        # -----------------------------------------------
         # --- Potential fix for tracking ball issues ---
+        # -----------------------------------------------
+        if person_boxes is None:
+            person_boxes = []
+        # 1) predict (same API, but pass ball class if we found it and use a bigger input)
+        results = self.model.predict(
+            frame,
+            conf=0.15,                          # tune 0.12–0.22 as needed
+            iou=0.30,
+            imgsz=1280,                         # helps tiny balls
+            classes=[self.ball_cls] if self.ball_cls is not None else None)[0]
 
-        results = self.model.predict(frame, 
-                                     conf = 0.15,
-                                     iou = 0.30,
-                                     imgsz = 1280)[0]
-        
-        ball_dict = {}
         boxes = results.boxes
+        ball_dict = {}
+        if boxes is None or len(boxes) == 0:
+            return ball_dict  # nothing this frame
 
-        if boxes is not None and len(boxes):
-            h, w = frame.shape[:2]
-            cands = []
+        h, w = frame.shape[:2]
 
-            def center(b):
-                x1,y1,x2,y2 = b
-                return (0.5*(x1+x2), 0.5*(y1+y2))
+        # 2) build candidates; keep small & roughly round-ish; drop anything inside a player box
+        def center(b): 
+            x1,y1,x2,y2 = b; return (0.5*(x1+x2), 0.5*(y1+y1))  # <- y1+y2, typo guard below
 
-            for b in boxes:
-                xyxy = b.xyxy[0].cpu().numpy()
-                x1,y1,x2,y2 = xyxy
-                conf = float(b.conf[0])
-                bw, bh = x2 - x1, y2 - y1
-                area = bw * bh
-                ar = bw / max(bh, 1e-6)
+        def _inside(cx, cy, pb):
+            px1,py1,px2,py2 = pb
+            return (px1 <= cx <= px2) and (py1 <= cy <= py2)
 
-                # gate: small & roughly square
-                if area <= 0.015 * w * h and 0.7 <= ar <= 1.5:
-                    cands.append((conf, area, xyxy))
+        cands = []
+        for b in boxes:
+            xyxy = b.xyxy[0].cpu().numpy()
+            x1, y1, x2, y2 = xyxy
+            bw, bh = x2 - x1, y2 - y1
+            if bw <= 0 or bh <= 0:
+                continue
+            area = bw * bh
+            ar   = bw / max(bh, 1e-6)
+            # size/shape gate: reject net patches, keep plausible balls
+            if area > 0.022 * w * h or not (0.7 <= ar <= 1.6):
+                continue
+            cx, cy = (0.5*(x1+x2), 0.5*(y1+y2))  # correct center
+            # reject if center lies inside any player box (kills sleeve hits)
+            if person_boxes and any(_inside(cx, cy, pb) for pb in person_boxes):
+                continue
+            cands.append((float(b.conf[0]), xyxy))
 
-            if cands:
-                if getattr(self, "prev_center", None) is not None:
-                    pcx, pcy = self.prev_center
-                    # nearest to last center, then higher conf, then smaller area
-                    cands.sort(key=lambda t: ((center(t[2])[0]-pcx)**2 + (center(t[2])[1]-pcy)**2, -t[0], t[1]))
-                else:
-                    # first frame: highest conf, then smallest
-                    cands.sort(key=lambda t: (-t[0], t[1]))
+        if not cands:
+            return ball_dict
 
-                chosen = cands[0][2]
-                ball_dict[1] = chosen.tolist()
-                self.prev_center = center(chosen)
+        # 3) choose candidate
+        if self.prev_center is not None:
+            pcx, pcy = self.prev_center
+            # nearest to previous center; tie-break by higher conf
+            conf, pick = min(cands, key=lambda t: ((0.5*(t[1][0]+t[1][2]) - pcx)**2 + (0.5*(t[1][1]+t[1][3]) - pcy)**2, -t[0]))[0:2]
         else:
-            # optional: keep last box for continuity when nothing is detected
-            pass
+            # first hit: highest confidence
+            conf, pick = max(cands, key=lambda t: t[0])
 
+        self.prev_center = (0.5*(pick[0]+pick[2]), 0.5*(pick[1]+pick[3]))
+        ball_dict[1] = pick.tolist()
         return ball_dict
-       
+        # -----------------------------
         # --- End of potential fix ---
+        # -----------------------------
 
     
     def draw_bboxes(self, video_frames, player_detections):
