@@ -34,7 +34,7 @@ def main():
 
 
     # Court Line Detector Model
-    court_model_path = "models/keypoint_model.pth"
+    court_model_path = "models/keypoint_model.pth" # Change model path to 2 for second larger dataset keypoint model
     court_line_detector = CourtLineDetector(court_model_path)
     court_keypoints = court_line_detector.predict(video_frames[0])
 
