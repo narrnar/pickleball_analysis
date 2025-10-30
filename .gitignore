@@ -11,6 +11,7 @@ runs/
 outputs/
 tracker_stubs/
 output_videos/
+ignore/
 
 # Local data & weights (keep local, don't push)
 input_videos/
@@ -42,6 +43,3 @@ datasets/
 
 # Jupyter Notebooks
 *.ipynb
-# --- KEY IN IPYNB ---
-# K5y7hyQBmDKQ82NzgM5Q
-# K5y7hyQBmDKQ82NzgM5Q
