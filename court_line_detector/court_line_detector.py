@@ -34,9 +34,13 @@ class CourtLineDetector:
         return keypoints
     
     def draw_keypoints(self, image, keypoints):
+        SCALE_X = 1.06   # widen
+        SCALE_Y = 1.10   # stretch downward
+        OFFSET_X = 22    # move right (positive)
+        OFFSET_Y = 28    # move down (positive)
         for i in range(0, len(keypoints), 2):
-            x = int(keypoints[2*i])
-            y = int(keypoints[2*i + 1])
+            x = int(keypoints[i])
+            y = int(keypoints[i + 1])
 
             cv2.putText(image, str(i//2), (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
             cv2.circle(image, (x, y), 5, (0, 0, 255), -1)
