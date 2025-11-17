@@ -163,7 +163,7 @@ class MiniCourt:
         return self.drawing_key_points
     
 
-    # --- COMMENT OUT(WIP) ---
+    # --- WIP ---
     
     def get_mini_court_coordinates(self, 
                                    object_position, 
@@ -188,6 +188,8 @@ class MiniCourt:
                                        self.drawing_key_points[closes_key_point_index*2 + 1])
         mini_court_player_position = (closest_mini_court_keypoint[0] + mini_court_x_distance_pixels,
                                       closest_mini_court_keypoint[1] + mini_court_y_distance_pixels)
+        
+        return mini_court_player_position
 
 
     def convert_bounding_boxes_to_mini_court_coordinates(self, player_boxes, ball_boxes, original_court_key_points):
@@ -208,6 +210,11 @@ class MiniCourt:
 
             output_player_bboxes_dict = {}
             for player_id, bbox in player_bbox.items():
+                pid = int(player_id)
+                # only work with players we have height constants for (1..4)
+                if pid not in player_heights:
+                    continue
+
                 foot_position = get_foot_position(bbox)
 
                 # Get the closest key point on the court to the foot position - using points(0-close, 1-far, 8-close_middle, 9-far_middle)
@@ -216,18 +223,31 @@ class MiniCourt:
                                      original_court_key_points[closest_key_point_index*2 + 1])
 
                 # Get player height in pixels
+                # frame_index_min = max(0, frame_num - 20)
+                # frame_index_max = min(len(player_boxes), frame_num + 50)
+                # bbox_heights_in_pixels = [get_height_of_bbox(player_boxes[i][player_id]) for i in range(frame_index_min, frame_index_max)]
+                # max_player_height_in_pixels = max(bbox_heights_in_pixels)
                 frame_index_min = max(0, frame_num - 20)
                 frame_index_max = min(len(player_boxes), frame_num + 50)
-                bbox_heights_in_pixels = [get_height_of_bbox(player_boxes[i][player_id]) for i in range(frame_index_min, frame_index_max)]
-                max_player_height_in_pixels = max(bbox_heights_in_pixels)
+                heights = [
+                    get_height_of_bbox(player_boxes[i][player_id])
+                    for i in range(frame_index_min, frame_index_max)
+                    if player_id in player_boxes[i]      # <-- only frames where this player is present
+                ]
+                if heights:
+                    max_player_height_in_pixels = max(heights)
+                else:
+                    # player vanished in this window; fall back to current bbox height
+                    max_player_height_in_pixels = get_height_of_bbox(bbox)
+
 
                 mini_court_player_position = self.get_mini_court_coordinates(foot_position,
                                                                             closest_key_point,
                                                                             closest_key_point_index,
                                                                             max_player_height_in_pixels,
-                                                                            player_heights[player_id])
+                                                                            player_heights[pid])
                 
-                output_player_bboxes_dict[player_id] = mini_court_player_position
+                output_player_bboxes_dict[pid] = mini_court_player_position
 
                 if closest_player_id_to_ball == player_id:
                    # Get the closest key point on the court to the foot position - using points(0-close, 1-far, 8-close_middle, 9-far_middle)
@@ -238,7 +258,7 @@ class MiniCourt:
                                                                             closest_key_point,
                                                                             closest_key_point_index,
                                                                             max_player_height_in_pixels,
-                                                                            player_heights[player_id])
+                                                                            player_heights[pid])
                     
                     output_ball_boxes.append({1:mini_court_player_position})
             output_player_boxes.append(output_player_bboxes_dict)
@@ -256,4 +276,4 @@ class MiniCourt:
 
         return frames
     
-    # --- COMMENT OUT(END WIP) ---
+    # --- WIP ---
