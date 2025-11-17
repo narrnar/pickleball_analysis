@@ -14,7 +14,7 @@ def draw_player_stats(output_video_frames, player_stats):
         avg_player_1_speed = row['player_1_average_player_speed']
         avg_player_2_speed = row['player_2_average_player_speed']
 
-        frame = output_video_frames(index)
+        frame = output_video_frames[index]
 
 
         shapes = np.zeros_like(frame, np.uint8)

@@ -53,7 +53,6 @@ def main():
                                                                                                         ball_detections,
                                                                                                         court_keypoints)
 
-    # --- COMMENT OUT(WIP) ---
     # Player stats data
     player_stats_data = [{
         'frame_num': 0,
@@ -133,11 +132,9 @@ def main():
     # player_stats_data_df['player_3_average_player_speed'] = player_stats_data_df['player_3_total_player_speed'] / player_stats_data_df['player_4_number_of_shots']
     # player_stats_data_df['player_4_average_player_speed'] = player_stats_data_df['player_4_total_player_speed'] / player_stats_data_df['player_3_number_of_shots']
 
-    # --- COMMENT OUT (END WIP) ---
-
-
-
+    # --------------------
     # --- Draw Output ---
+    # --------------------
 
     # -- Draw Player Bounding Boxes
     output_video_frames = player_tracker.draw_bboxes(video_frames, player_detections)
@@ -153,10 +150,7 @@ def main():
     output_video_frames = mini_court.draw_points_on_mini_court(output_video_frames, ball_mini_court_detections, color = (0, 255, 255))
 
     # -- Draw Player Stats
-
-    # --- COMMENT OUT (WIP) ---
     output_video_frames = draw_player_stats(output_video_frames, player_stats_data_df)
-    # --- COMMENT OUT (END WIP) ---
 
     # -- Draw Frame Number on Top Left Corner
     for i, frame in enumerate(output_video_frames):
