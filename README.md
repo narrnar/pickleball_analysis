@@ -5,7 +5,7 @@ This project analyzes Pickleball players in a video to measure their speed, ball
 
 ## Output Videos
 Below is a screenshot from one of the output videos:
-![Pickleball analysis screenshot](/Users/darensivam/Desktop/Projects/pickleball/misc/example_output.png)
+![Pickleball analysis screenshot](misc/example_output.png)
 
 ## Models Used
 * YOLO v8 for Player Detection
